@@ -23,6 +23,13 @@
 int32_t g_stopped = 0;
 sem_t g_stop_sem;
 
+//looger config
+uint32_t g_log_count;
+uint32_t g_log_filecount;
+uint32_t g_log_level;
+uint32_t g_log_timeout;
+
+
 //system configuration
 string g_server_ip;
 uint32_t g_server_port = 0;
@@ -79,7 +86,8 @@ const char* SYS_VAR[] = {
     "_HANGUP_CAUSE",
     "_CALL_BEGIN_TIME",
     "_CALL_ANSWER_TIME",
-    "_TRUNCK"//add to store associate data when incall is transfer from other ivr
+    "_TRUNCK",//add to store associate data when incall is transfer from other ivr
+    "_AGENTID"
 };
 std::string base_script_t::bill_info() {
     ostringstream ostm;

@@ -442,7 +442,8 @@ typedef struct _sys_var_t {
         CALL_BEGIN_TIME = 5, ///< 呼叫到达平台的时间
         CALL_ANSWER_TIME = 6, ///< 呼叫被接起的时间
         TRUNCK = 7,
-        END = 8
+        AGENTID= 8, //转坐席的工号
+        END = 9
     };
 } sys_var_t;
 
@@ -458,6 +459,12 @@ private:
 
 extern int32_t g_stopped;
 extern sem_t g_stop_sem;
+
+//logger config
+extern uint32_t g_log_count;
+extern uint32_t g_log_filecount;
+extern uint32_t g_log_level;
+extern uint32_t g_log_timeout;
 
 extern string g_server_ip;
 extern uint32_t g_server_port;

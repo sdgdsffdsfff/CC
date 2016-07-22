@@ -24,7 +24,7 @@
 
 namespace ivr {
 // Ã¿¸ö¼¼ÄÜ×éµÄĞÅÏ¢
-typedef struct SkillCallData{
+struct SkillCallData{
 public:
     SkillCallData() : giveuptimes(0){}
 public:
@@ -32,7 +32,7 @@ public:
 };
 
 // µ±Ç°µÄºô½ĞÊı¾İºô½ĞÊı¾İ
-typedef struct IvrCallData{
+struct IvrCallData{
 public:
     IvrCallData()
     : cur_inbound_num(0)
@@ -72,18 +72,23 @@ public:
         UNKNOW
     }; // state
 
-    IvrInboundCall() : _m_state(UNKNOW){}
+    IvrInboundCall() : _m_state(UNKNOW), _has_hangup(false), _exit_flow(false){}
     ~IvrInboundCall(){}
+    int32_t update_route_skill_endtime(const std::string& skill_name);
+    int32_t set_appdata(const std::string& appdata);
     int32_t set_state(int32_t state);//ÉèÖÃµ±Ç°×´Ì¬
     int32_t get_state();//ÉèÖÃµ±Ç°×´Ì¬
-    void init_new_call(const ivr_session_id_t& sessionId, const string &caller, const string &callee); 
+    void init_new_call(const ivr_session_id_t& sessionId, const string &callid, const string &caller, const string &callee); 
     void set_skill(const std::string& skill);
     std::string get_skill();
     std::string get_called();
+    bool get_exit_flow();
     void set_agent_num(const string &agentnum);
     time_t get_begintime();
 private:
     int32_t _m_state;
+    bool _has_hangup;
+    bool _exit_flow;
     IvrCallInfo _m_ivr_callinfo;
 } ;
 
@@ -115,10 +120,10 @@ public:
     // @param called ivr×ª½ÓÂë
     // @parma sessionid ,±ê¼ÇÃ¿Í¨ºô½ĞÌ
     // @return 0:success other:failed
-    int32_t new_inbound_call(const std::string& caller, const std::string& called
+    int32_t new_accept_call(const std::string& caller, const std::string& called
                     , const ivr_session_id_t& sessionId, const std::string& uuid);
 
-    // @brief ºôÈëÁ¿(Î´½øÈëÁ÷³Ì) +1
+    // @brief ºôÈëÁ¿(ËùÓĞµÄÁ¿) +1
     // @param caller ºôÈëºÅÂë
     // @param called ivr×ª½ÓÂë
     // @parma uuit uuid,±ê¼ÇÃ¿Í¨ºô½ĞÌ
@@ -131,6 +136,7 @@ public:
     // @parma state ×´Ì¬ 
     // @parma skill ¼¼ÄÜ£¬Ä¬ÈÏÎª¿Õ
     // @return 0:success other:failed   
+    int32_t set_appdata(const ivr_session_id_t& sessionId, const std::string& appdata);
     int32_t set_state(const ivr_session_id_t& sessionId, const int32_t state, const std::string& skill);
     
     // @brief ´¦ÀíÊÂ¼ş
@@ -143,16 +149,6 @@ public:
     // @return 0:success other:failed
     int32_t process_event(ivr_base_event_t* event);
     
-    // @brief É¾³ıºôÈëÊı¾İ
-    // @parma sessionId,±ê¼ÇÃ¿Í¨ºô½Ğ
-    // @return 0:success other:failed    
-    int32_t del_inbound_call(const ivr_session_id_t& sessionId);
-
-    // @brief É¾³ıºôÈëÊı¾İ
-    // @parma uuid, ±ê¼ÇÃ¿Í¨ºô½Ğ
-    // @return 0:success other:failed   
-    int32_t del_inbound_call(const std::string& uuid);
-
     // @breif »ñÈ¡ÏµÍ³µ±Ç°ºô½ĞÊı¾İ
     // @param calldata calldataµØÖ·
     // @param result ·µ»ØµÄ¼¼ÄÜ×éÊı¾İ
@@ -198,6 +194,7 @@ private:
     struct IvrCallData _plat_call_data;//µ±Ç°µÄºô½ĞÊı¾İ
     std::map<std::string, struct IvrCallData*> _ivrnum_call_data; // °´ivr½ÓÈëÂë´æ´¢µÄµ±Ììºô½ĞÊı¾İ
     std::map<ivr_session_id_t, IvrInboundCall*> _realtime_call;
+    std::map<ivr_session_id_t, IvrInboundCall*> _exitflow_call;
     std::map<std::string, ivr_session_id_t> _first_uuid_map;
     std::map<std::string, ivr_session_id_t> _second_uuid_map;
     std::set<std::string> _refuse_call;
@@ -205,7 +202,9 @@ private:
 
 typedef std::map<std::string, struct SkillCallData*>::iterator IterSkill;
 typedef std::map<std::string, struct IvrCallData*>::iterator IterIvrNum;
-typedef std::map<ivr_session_id_t, IvrInboundCall*>::iterator iterCall;
+typedef std::map<ivr_session_id_t, IvrInboundCall*>::iterator IterCall;
+typedef std::map<std::string, ivr_session_id_t>::iterator IterSession;
+typedef std::set<std::string>::iterator IterStr;
 }
 
 #endif
